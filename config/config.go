@@ -1,0 +1,24 @@
+package config
+
+import "os"
+
+type Config struct {
+	DatabaseUrl string
+	JWTSecret   string
+	Port        string
+}
+
+func Load() *Config {
+	return &Config{
+		DatabaseUrl: GetEnv("DATABASE_URL", "Nothing"),
+		JWTSecret:   GetEnv("JWT_SECRET", "1234"),
+		Port:        GetEnv("PORT", "8080"),
+	}
+}
+
+func GetEnv(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}

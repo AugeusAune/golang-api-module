@@ -1,0 +1,12 @@
+@url = http://localhost:8080/api
+
+POST {{url}}/vat-rate
+Content-Type: application/json
+Accept: application/json
+
+{
+    "rate": 11.10,
+    "year": 2019,
+    "name": "rate",
+    "is_active": true
+}
