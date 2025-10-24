@@ -58,6 +58,7 @@ func main() {
 	defer queueClient.Close()
 
 	app := fiber.New(fiber.Config{
+		AppName:      "Golang Module API",
 		JSONEncoder:  json.Marshal,
 		JSONDecoder:  json.Unmarshal,
 		ErrorHandler: customErrorHandler,
