@@ -10,3 +10,8 @@ Accept: application/json
     "name": "rate",
     "is_active": true
 }
+
+####
+POST {{url}}/vat-rate/post-queue
+Content-Type: application/json
+Accept: application/json

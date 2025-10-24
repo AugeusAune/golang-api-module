@@ -4,6 +4,7 @@ import "os"
 
 type Config struct {
 	DatabaseUrl string
+	RedisAddr   string
 	JWTSecret   string
 	Port        string
 }
@@ -11,6 +12,7 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		DatabaseUrl: GetEnv("DATABASE_URL", "Nothing"),
+		RedisAddr:   GetEnv("REDIS_ADDR", "localhost:6379"),
 		JWTSecret:   GetEnv("JWT_SECRET", "1234"),
 		Port:        GetEnv("PORT", "8080"),
 	}

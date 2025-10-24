@@ -6,19 +6,23 @@ import (
 	"fmt"
 	"golang-api-module/config"
 	"golang-api-module/internal/modules"
+	"golang-api-module/internal/queue"
 	internalLog "golang-api-module/internal/shared/logger"
 	"golang-api-module/internal/shared/response"
 	"io"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	"github.com/joho/godotenv"
+	"github.com/redis/go-redis/v9"
 )
 
 func main() {
@@ -36,6 +40,15 @@ func main() {
 
 	config := config.Load()
 
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     config.RedisAddr,
+		Password: "",
+		DB:       0,
+	})
+
+	queueClient := queue.NewClient(rdb, log)
+	defer queueClient.Close()
+
 	app := fiber.New(fiber.Config{
 		JSONEncoder:  json.Marshal,
 		JSONDecoder:  json.Unmarshal,
@@ -44,15 +57,20 @@ func main() {
 	})
 
 	app.Use(requestid.New())
-	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	app.Use(cors.New())
-
+	app.Use(recover.New(recover.Config{
+		EnableStackTrace: true,
+	}))
+	app.Use(limiter.New(limiter.Config{
+		Expiration: 10 * time.Second,
+		Max:        10,
+	}))
 	app.Use(logger.New(logger.Config{
 		Format: "[${time}] ${status} - ${method} ${path}\n",
 		Output: io.MultiWriter(os.Stdout),
 	}))
 
-	modules.InitModule(app, log)
+	modules.InitModule(ctx, app, queueClient, log)
 
 	go func() {
 		port := fmt.Sprintf(":%s", config.Port)

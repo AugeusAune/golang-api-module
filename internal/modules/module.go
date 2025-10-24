@@ -1,7 +1,9 @@
 package modules
 
 import (
+	"context"
 	"golang-api-module/internal/modules/vatrate"
+	"golang-api-module/internal/queue"
 	"golang-api-module/internal/shared/response"
 
 	"github.com/go-playground/validator/v10"
@@ -9,20 +11,21 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func InitModule(app *fiber.App, log *logrus.Logger) {
+func InitModule(ctx context.Context, app *fiber.App, queueClient *queue.Client, log *logrus.Logger) {
 	router := app.Group("/api")
 
-	validator := validator.New()
+	validate := validator.New()
 
-	registerVatRateModule(router, validator, log)
+	registerVatRateModule(ctx, router, queueClient, validate, log)
 
 	app.Use(func(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusNotFound, "Route not found")
 	})
 }
 
-func registerVatRateModule(router fiber.Router, validator *validator.Validate, log *logrus.Logger) {
-	handler := vatrate.NewHandler(validator, log)
+func registerVatRateModule(ctx context.Context, router fiber.Router, queueClient *queue.Client, validate *validator.Validate, log *logrus.Logger) {
+	service := vatrate.NewService(ctx, queueClient, log)
+	handler := vatrate.NewHandler(service, validate, log)
 	module := vatrate.NewModule(handler)
 
 	module.RegisterRoutes(router.Group("/vat-rate"))

@@ -9,12 +9,14 @@ import (
 )
 
 type Handler struct {
+	service   *Service
 	validator *validator.Validate
 	log       *logrus.Logger
 }
 
-func NewHandler(validator *validator.Validate, log *logrus.Logger) *Handler {
+func NewHandler(service *Service, validator *validator.Validate, log *logrus.Logger) *Handler {
 	return &Handler{
+		service:   service,
 		validator: validator,
 		log:       log,
 	}
@@ -38,4 +40,9 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 	}
 
 	return response.Created(c, req, "VAT Rate berhasil dibuat")
+}
+
+func (h *Handler) PostQueue(c *fiber.Ctx) error {
+	h.service.AddQueue()
+	return response.Success(c, nil, "success")
 }
