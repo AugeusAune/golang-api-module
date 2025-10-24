@@ -7,11 +7,11 @@ Accept: application/json
 {
     "rate": 11.10,
     "year": 2019,
-    "name": "rate",
+    "month": 10,
     "is_active": true
 }
 
 ####
-POST {{url}}/vat-rate/post-queue
+DELETE {{url}}/vat-rate/cf17704e-3316-4d8a-abba-de3629857195
 Content-Type: application/json
 Accept: application/json

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"golang-api-module/config"
+	"golang-api-module/internal/database"
 	"golang-api-module/internal/modules"
 	"golang-api-module/internal/queue"
 	internalLog "golang-api-module/internal/shared/logger"
@@ -40,6 +41,13 @@ func main() {
 
 	config := config.Load()
 
+	db := database.Connect(config)
+
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatalf("Failed to get sql.DB handle: %v", err)
+	}
+
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     config.RedisAddr,
 		Password: "",
@@ -58,19 +66,11 @@ func main() {
 
 	app.Use(requestid.New())
 	app.Use(cors.New())
-	app.Use(recover.New(recover.Config{
-		EnableStackTrace: true,
-	}))
-	app.Use(limiter.New(limiter.Config{
-		Expiration: 10 * time.Second,
-		Max:        10,
-	}))
-	app.Use(logger.New(logger.Config{
-		Format: "[${time}] ${status} - ${method} ${path}\n",
-		Output: io.MultiWriter(os.Stdout),
-	}))
+	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
+	app.Use(limiter.New(limiter.Config{Expiration: 10 * time.Second, Max: 10}))
+	app.Use(logger.New(logger.Config{Format: "[${time}] ${status} - ${method} ${path}\n", Output: io.MultiWriter(os.Stdout)}))
 
-	modules.InitModule(ctx, app, queueClient, log)
+	modules.InitModule(ctx, app, db, queueClient, log)
 
 	go func() {
 		port := fmt.Sprintf(":%s", config.Port)
@@ -82,6 +82,10 @@ func main() {
 	<-sigChan
 
 	log.Info("shutting down...")
+
+	if err := sqlDB.Close(); err != nil {
+		log.Errorf("Error closing database connection: %v", err)
+	}
 
 	if err := app.ShutdownWithContext(ctx); err != nil {
 		log.Errorf("Error shutting down server: %v", err)

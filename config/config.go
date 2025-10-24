@@ -11,7 +11,7 @@ type Config struct {
 
 func Load() *Config {
 	return &Config{
-		DatabaseUrl: GetEnv("DATABASE_URL", "Nothing"),
+		DatabaseUrl: GetEnv("DSN", "Nothing"),
 		RedisAddr:   GetEnv("REDIS_ADDR", "localhost:6379"),
 		JWTSecret:   GetEnv("JWT_SECRET", "1234"),
 		Port:        GetEnv("PORT", "8080"),

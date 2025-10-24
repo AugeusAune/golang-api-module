@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS vat_rates (
+    id UUID PRIMARY KEY NOT NULL DEFAULT uuid_generate_v4(),
+    year INTEGER NOT NULL,
+    month INTEGER NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT false,
+    rate NUMERIC(10, 2) NOT NULL DEFAULT 11.00,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ NULL
+)

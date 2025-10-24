@@ -39,10 +39,27 @@ func (h *Handler) Create(c *fiber.Ctx) error {
 		return response.ErrorValidation(c, err)
 	}
 
-	return response.Created(c, req, "VAT Rate berhasil dibuat")
+	data, err := h.service.Create(req)
+
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	return response.Created(c, data, "VAT Rate berhasil dibuat")
 }
 
-func (h *Handler) PostQueue(c *fiber.Ctx) error {
-	h.service.AddQueue()
-	return response.Success(c, nil, "success")
+func (h *Handler) Delete(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	if id == "" {
+		return response.BadRequest(c, "id is not required")
+	}
+
+	err := h.service.Delete(id)
+
+	if err != nil {
+		return response.Error(c, fiber.StatusBadRequest, err.Error())
+	}
+
+	return response.Success(c, nil, "data has been deleted")
 }

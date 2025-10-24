@@ -17,5 +17,5 @@ func NewModule(handler *Handler) *Module {
 func (m *Module) RegisterRoutes(router fiber.Router) {
 	router.Get("/", m.handler.GetAll)
 	router.Post("/", m.handler.Create)
-	router.Post("/post-queue", m.handler.PostQueue)
+	router.Delete("/:id", m.handler.Delete)
 }
