@@ -69,9 +69,10 @@ func (c *Consumer) worker(ctx context.Context, id int) {
 			if err := c.process(ctx, &job); err != nil {
 				c.log.Infof("Worker %d job %s failed: %v", id, job.ID, err)
 				c.handleFailure(ctx, &job, err)
-			} else {
-				c.log.Infof("Worker %d completed job %s", id, job.ID)
+				continue
 			}
+
+			c.log.Infof("Worker %d completed job %s", id, job.ID)
 		}
 	}
 }
@@ -82,6 +83,7 @@ func (c *Consumer) process(ctx context.Context, job *Job) error {
 		c.log.Infof("no handler for job type: %s", job.Type)
 		return fmt.Errorf("no handler for job type: %s", job.Type)
 	}
+
 	return handler(ctx, c.log, job)
 }
 
@@ -93,14 +95,16 @@ func (c *Consumer) handleFailure(ctx context.Context, job *Job, err error) {
 
 		if err := c.client.EnqueueAt(ctx, c.queue, job, executeAt); err != nil {
 			c.log.Warnf("Failed to re-enqueue job %s: %v", job.ID, err)
-		} else {
-			c.log.Infof("Job %s re-queued (retry %d/%d) after %v", job.ID, job.Retry, job.MaxRetry, delay)
+			return
 		}
-	} else {
-		dlq := c.queue + ":dlq"
-		if err := c.client.Enqueue(ctx, dlq, job); err != nil {
-			c.log.Infof("Failed to move job %s to DLQ: %v", job.ID, err)
-		}
+
+		c.log.Infof("Job %s re-queued (retry %d/%d) after %v", job.ID, job.Retry, job.MaxRetry, delay)
+		return
+	}
+
+	dlq := c.queue + ":dlq"
+	if err := c.client.Enqueue(ctx, dlq, job); err != nil {
+		c.log.Infof("Failed to move job %s to DLQ: %v", job.ID, err)
 	}
 }
 
