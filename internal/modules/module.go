@@ -17,10 +17,20 @@ func InitModule(ctx context.Context, app *fiber.App, db *gorm.DB, queueClient *q
 
 	validate := validator.New()
 
+	registerCsrf(app)
 	registerVatRateModule(ctx, router, db, queueClient, validate, log)
 
 	app.Use(func(c *fiber.Ctx) error {
 		return response.Error(c, fiber.StatusNotFound, "Route not found")
+	})
+}
+
+func registerCsrf(app *fiber.App) {
+	app.Get("/csrf-token", func(c *fiber.Ctx) error {
+		token := c.Locals("csrf")
+		return c.JSON(fiber.Map{
+			"csrf_token": token,
+		})
 	})
 }
 

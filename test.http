@@ -1,8 +1,15 @@
 @url = http://localhost:8080/api
 
+GET http://localhost:8080/csrf-token
+Content-Type: application/json
+Accept: application/json
+
+###
+
 POST {{url}}/vat-rate
 Content-Type: application/json
 Accept: application/json
+X-CSRF-Token: 0b198bac-7688-4c68-8398-20a93e0864e0
 
 {
     "rate": 11.10,
@@ -15,3 +22,4 @@ Accept: application/json
 DELETE {{url}}/vat-rate/cf17704e-3316-4d8a-abba-de3629857195
 Content-Type: application/json
 Accept: application/json
+X-CSRF-Token: 0b198bac-7688-4c68-8398-20a93e0864e0

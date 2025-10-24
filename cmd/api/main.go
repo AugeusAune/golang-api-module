@@ -18,6 +18,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/csrf"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -70,6 +71,14 @@ func main() {
 	app.Use(recover.New(recover.Config{EnableStackTrace: true}))
 	app.Use(limiter.New(limiter.Config{Expiration: 10 * time.Second, Max: 10}))
 	app.Use(logger.New(logger.Config{Format: "[${time}] ${status} - ${method} ${path}\n", Output: io.MultiWriter(os.Stdout)}))
+	app.Use(csrf.New(csrf.Config{
+		CookieName:     "csrf_",
+		CookieSameSite: "Strict",
+		CookieSecure:   false,
+		CookieHTTPOnly: true,
+		KeyLookup:      "header:X-CSRF-Token",
+		ContextKey:     "csrf",
+	}))
 
 	modules.InitModule(ctx, app, db, queueClient, log)
 
